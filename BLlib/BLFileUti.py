@@ -4,6 +4,7 @@
 def writeToFile(fileName, txt, way='a'):
     with open(fileName, way) as f:
         print(f.write(txt))
+        f.write('\n')
 
 def writeArrDataToFile(fileName, arrData, way='a'):
     # 打开一个文件

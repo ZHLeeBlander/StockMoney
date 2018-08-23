@@ -78,6 +78,7 @@ def analysis_ma5_rise(recentlyDayNum=5, mouthNum=1):
         # 规则2： 其他四个要求 ma10 > ma5 (现在默认分析五条数据)
         boolN = True
         if len(ma5Arr) >= recentlyDayNum:
+            countNum = 0
             for i in range(recentlyDayNum,0,-1):
                 ma5 = ma5Arr[i]
                 ma10 = ma10Arr[i]
@@ -86,14 +87,22 @@ def analysis_ma5_rise(recentlyDayNum=5, mouthNum=1):
                         print codeNum,"不需要关注"
                         boolN = False
                         break
+                        # countNum += 1
+            # if countNum > 2:
+            #     print codeNum,"不需要关注"
+            #     continue
+            # else :
+            #     print codeNum,"需要关注"
+            #     BLFileUti.writeToFile(FILE_NAME_Need,codeNum)
+            #     needChooseArr.append(codeNum)
         if boolN:
             print codeNum,"需要关注"
+            BLFileUti.writeToFile(FILE_NAME_Need,codeNum)
             needChooseArr.append(codeNum)
-
         # break
     if len(needChooseArr) > 0:
         print "需要关注的股票已保存"
-        BLFileUti.writeArrDataToFile(FILE_NAME_Need,needChooseArr)
+        # BLFileUti.writeArrDataToFile(FILE_NAME_Need,needChooseArr)
     else :
         print "没有需要关注的股票"
 
