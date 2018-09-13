@@ -24,6 +24,7 @@ FILE_NAME_Need = 'Need.txt'
 # print ma5_avg
 # print data['open'] #['high'],['close'],['low'],['ma5'],['ma10']
 
+# 去除开头为3的股票代码
 def getAllCodeAndSaveToFile(fileName):
     '''
     fileName:保存文件的名称
@@ -42,6 +43,29 @@ def getAllCodeAndSaveToFile(fileName):
     # print dataTemp
     # 保存数据
     BLFileUti.writeArrDataToFile(fileName,dataTemp,way='w')
+
+# 去除无数据股票代码
+def deleteNoDataCode(formFile):
+
+    newArr = []
+    allCode = BLFileUti.readFileGetArrData(formFile)
+    startTime = BLDate.get_today_month(-1)
+    for codeNum in allCode:
+        df = ts.get_hist_data(code=codeNum,start=startTime)
+        if df is None:
+            print codeNum,"不需要关注"
+        else:
+            print "添加关注 ",codeNum
+            newArr.append(codeNum)
+    if len(newArr) > 0:
+        # 保存数据
+        print "保存数据中..."
+        BLFileUti.writeArrDataToFile(formFile,newArr,way='w')
+        print "保存成功"
+
+    
+
+
 
 # 分析5日均线回升股
 def analysis_ma5_rise(recentlyDayNum=5, mouthNum=1):
@@ -107,7 +131,47 @@ def analysis_ma5_rise(recentlyDayNum=5, mouthNum=1):
         print "没有需要关注的股票"
 
 
-analysis_ma5_rise()
+def pri5riJunXianWithCode(codeNum, startTime):
+    
+    df = ts.get_hist_data(code=codeNum,start=startTime)
+    # 收盘价
+    vaArr = df.close.values
+    if len(vaArr)==0:
+        return False
+    # 5日均线价
+    ma5Arr = df.ma5.values
+    if len(ma5Arr)==0:
+        return False
+
+    bIsNeed = True
+    # for value in vaArr:
+    for i in range(0,3):
+        if vaArr[i] < ma5Arr[i]:
+            bIsNeed = False
+            break
+    return bIsNeed
+            
+def getNeedCode():
+
+    allCode = BLFileUti.readFileGetArrData(FILE_NAME)
+    startTime = BLDate.get_today_month(-1)
+
+    needChooseArr = []
+
+    for codeNum in allCode:
+        bNeed = pri5riJunXianWithCode(codeNum, startTime)
+        if bNeed :
+            print codeNum,"需要关注"
+            # needChooseArr.append(codeNum)
+            BLFileUti.writeToFile(FILE_NAME_Need,codeNum)
+        else :
+            print codeNum,"不需要关注"
+
+# deleteNoDataCode(FILE_NAME)
+
+# analysis_ma5_rise()
+# pri5riJunXianWithCode("601330")
+getNeedCode()
 # startTime = BLDate.get_today_month(-1)
 # df = ts.get_hist_data('600146',start=startTime)
 
