@@ -8,6 +8,7 @@ import datetime,time,pandas
 
 FILE_NAME = 'all_gupiao_code.txt'
 FILE_NAME_Need = 'Need.txt'
+FILE_NAME_Today = 'todayYes.txt'
 
 # data = ts.get_hist_data('002596',start='2018-07-21')
 # data = ts.get_hist_data('002596',start='2018-07-21') #获取周k线数据
@@ -63,10 +64,6 @@ def deleteNoDataCode(formFile):
         BLFileUti.writeArrDataToFile(formFile,newArr,way='w')
         print "保存成功"
 
-    
-
-
-
 # 分析5日均线回升股
 def analysis_ma5_rise(recentlyDayNum=5, mouthNum=1):
     '''
@@ -85,8 +82,14 @@ def analysis_ma5_rise(recentlyDayNum=5, mouthNum=1):
         if df is None:
             print codeNum,"不需要关注"
             continue
-        ma5Arr = df.ma5.values
-        ma10Arr = df.ma10.values
+
+        ma5Arr = df.ma5.values.tolist()
+        ma10Arr = df.ma10.values.tolist()
+        vaArr = df.close.values.tolist()
+
+        if len(vaArr) == 0:
+            print codeNum,"不需要关注"
+            continue
 
         if len(ma5Arr) == 0 or len(ma10Arr) == 0:
             print codeNum,"不需要关注"
@@ -94,6 +97,23 @@ def analysis_ma5_rise(recentlyDayNum=5, mouthNum=1):
 
         if recentlyDayNum == 0:
             recentlyDayNum = len(ma5Arr)
+        
+        if vaArr[0] < ma5Arr[0]:
+            print codeNum,"不需要关注"
+            continue
+        
+        if vaArr[0] < ma10Arr[0]:
+            print codeNum,"不需要关注"
+            continue
+        
+        if len(vaArr) > 60:
+            tNUM = 0
+            for i in range(0,60):
+                tNUM += vaArr[i]
+            tNUM = tNUM / 60.0
+            if tNUM > vaArr[0]:
+                print codeNum,"不需要关注"
+                continue
 
         # 规则1：最近一个ma5 >= ma10(必须) 否则直接不关注
         if ma5Arr[0] < ma10Arr[0]:
@@ -134,13 +154,16 @@ def analysis_ma5_rise(recentlyDayNum=5, mouthNum=1):
 def pri5riJunXianWithCode(codeNum, startTime):
     
     df = ts.get_hist_data(code=codeNum,start=startTime)
+    if df is None:
+        print codeNum,"不需要关注"
+        return False
     # 收盘价
-    vaArr = df.close.values
-    if len(vaArr)==0:
+    vaArr = df.close.values.tolist()
+    if len(vaArr)<3:
         return False
     # 5日均线价
-    ma5Arr = df.ma5.values
-    if len(ma5Arr)==0:
+    ma5Arr = df.ma5.values.tolist()
+    if len(ma5Arr)<0:
         return False
 
     bIsNeed = True
@@ -167,17 +190,21 @@ def getNeedCode():
         else :
             print codeNum,"不需要关注"
 
+def todayUP():
+
+    allCode = BLFileUti.readFileGetArrData(FILE_NAME_Need)
+    lastDay = BLDate.get_day_of_day(-1)
+    localTime = time.localtime(lastDay) 
+    strTime = time.strftime("%Y-%m-%d", localTime) 
+    for codeNum in allCode:
+        df = ts.get_tick_data(code=codeNum,date=strTime)
+        if df is None:
+            print codeNum,"不需要关注"
+
 # deleteNoDataCode(FILE_NAME)
-
-# analysis_ma5_rise()
+analysis_ma5_rise(mouthNum=4)
 # pri5riJunXianWithCode("601330")
-getNeedCode()
-# startTime = BLDate.get_today_month(-1)
-# df = ts.get_hist_data('600146',start=startTime)
+# getNeedCode()
 
-# if df is None:
-#     print "不需要关注"
-# # if any(df):
-# #     print "不需要关注"
-# print df
-# getAllCodeAndSaveToFile('all_gupiao_code.txt')
+# todayUP()
+
